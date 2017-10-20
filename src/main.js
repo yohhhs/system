@@ -14,12 +14,10 @@ Vue.use(iView)
 Vue.use(VueParticles)
 Vue.prototype.userInfo = {
   authList: [{
-    code: '111',
     codeValue: '视频管理',
-    name: '视频管理',
     lookAuth: true,
     children: [{
-      name: '视频管理',
+      codeValue: '视频管理',
       lookAuth: true,
       route: '/main/videomanager',
       handles: [{
@@ -40,18 +38,18 @@ Vue.prototype.userInfo = {
       }]
     }]
   }, {
-    name: '我的信息',
+    codeValue: '我的信息',
     lookAuth: true,
     children: [{
-      name: '个人信息',
+      codeValue: '个人信息',
       lookAuth: true,
       route: '/main/myinfo'
     }]
   }, {
-    name: '通知公告',
+    codeValue: '通知公告',
     lookAuth: true,
     children: [{
-      name: '通知公告',
+      codeValue: '通知公告',
       lookAuth: true,
       route: '/main/notice',
       handles: [{
@@ -69,10 +67,10 @@ Vue.prototype.userInfo = {
       }]
     }]
   }, {
-    name: '基础设置',
+    codeValue: '基础设置',
     lookAuth: true,
     children: [{
-      name: '学校设置',
+      codeValue: '学校设置',
       lookAuth: true,
       route: '/main/schoolsetting',
       handles: [{
@@ -87,10 +85,10 @@ Vue.prototype.userInfo = {
       }]
     }]
   }, {
-    name: '系统菜单',
+    codeValue: '系统菜单',
     lookAuth: true,
     children: [{
-      name: '角色管理',
+      codeValue: '角色管理',
       lookAuth: true,
       route: '/main/authmanager',
       handles: [{
@@ -103,16 +101,20 @@ Vue.prototype.userInfo = {
         name: '删除',
         turn: true
       }]
+    }, {
+      codeValue: '权限管理',
+      lookAuth: true,
+      route: '/main/authallot'
     }]
   }, {
-    name: '会员管理',
+    codeValue: '会员管理',
     lookAuth: true,
     children: [{
-      name: '学校信息',
+      codeValue: '学校信息',
       lookAuth: true,
       route: '/main/schoolmember'
     }, {
-      name: '专家信息',
+      codeValue: '专家信息',
       lookAuth: true,
       route: '/main/expertmember'
     }]

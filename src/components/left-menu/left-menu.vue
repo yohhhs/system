@@ -1,11 +1,12 @@
 <template>
     <div class="left-menu">
-        <Menu :active-name='userInfo.authList[0].children[0].route' open-names=[userInfo.authList[0].name] @on-select="changeRoute" theme="dark" width="auto" :accordion="true">
-            <Submenu v-if="menu.lookAuth" v-for="(menu, index) in userInfo.authList" :key="menu.name" :name="index">
+        <Menu v-if="currentUserInfo.authList.length" :active-name='currentUserInfo.authList[0].children[0].route' @on-select="changeRoute" theme="dark" width="auto" :accordion="true">
+            <Submenu v-if="menu.lookAuth" v-for="(menu, index) in currentUserInfo.authList" :name="index">
                 <template slot="title">
-                    {{menu.name}}
+                    {{menu.codeValue}}
                 </template>
-                <MenuItem v-for="(item, index) in menu.children" :key="item.name" :name="item.route"> {{item.name}}
+                <MenuItem v-if="item.lookAuth" v-for="(item, index) in menu.children" :name="item.route">
+                    {{item.codeValue}}
                 </MenuItem>
             </Submenu>
         </Menu>
@@ -14,7 +15,9 @@
 <script>
 export default {
     data() {
-        return {}
+        return {
+            currentUserInfo: this.userInfo
+        }
     },
     methods: {
         changeRoute(name) {

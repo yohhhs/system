@@ -58,6 +58,11 @@ const ExpertMember = ((resolve) => {
     resolve(expertmember)
   })
 })
+const AuthAllot = ((resolve) => {
+  import ('cps/authallot/authallot').then((authallot) => {
+    resolve(authallot)
+  })
+})
 
 const router = new Router({
   mode: 'history',
@@ -97,6 +102,9 @@ const router = new Router({
       }, {
         path: 'expertmember',
         component: ExpertMember
+      }, {
+        path: 'authallot',
+        component: AuthAllot
       }]
     }
   ]

@@ -50,7 +50,6 @@ export default {
             if (!(/^[a-zA-Z0-9]{6,16}$/.test(pwd))) {
                 return this.error('密码格式不正确')
             }
-            this.userInfo.name = 'zz'
             this.$emit('login')
         },
         error(info) {
