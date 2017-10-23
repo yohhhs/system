@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import { checkRule } from 'common/js/util'
 
 Vue.use(Router)
 
@@ -67,9 +68,9 @@ const AuthAllot = ((resolve) => {
 const router = new Router({
   mode: 'history',
   routes: [{
-      path: '/',
-      redirect: '/admin'
-    },
+    path: '/',
+    redirect: '/admin'
+  },
     {
       path: '*',
       redirect: '/admin'
@@ -83,31 +84,57 @@ const router = new Router({
       component: Layout,
       children: [{
         path: 'myinfo',
-        component: Myinfo
+        component: Myinfo,
+        meta: {auth: true}
       }, {
         path: 'videomanager',
-        component: VideoManager
+        component: VideoManager,
+        meta: {auth: true}
       }, {
         path: 'schoolsetting',
-        component: SchoolSetting
+        component: SchoolSetting,
+        meta: {auth: true}
       }, {
         path: 'notice',
-        component: Notice
+        component: Notice,
+        meta: {auth: true}
       }, {
         path: 'authmanager',
-        component: AuthManager
+        component: AuthManager,
+        meta: {auth: true}
       }, {
         path: 'schoolmember',
-        component: SchoolMember
+        component: SchoolMember,
+        meta: {auth: true}
       }, {
         path: 'expertmember',
-        component: ExpertMember
+        component: ExpertMember,
+        meta: {auth: true}
       }, {
         path: 'authallot',
-        component: AuthAllot
+        component: AuthAllot,
+        meta: {auth: true}
       }]
     }
   ]
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.path === '/admin' || to.path === '/' || to.path === '*') {
+    next()
+  } else if (to.path === '/main') {
+    next({path: '/admin'})
+  } else {
+    if (from.path === '/') {
+      next({path: '/admin'})
+    } else if (to.meta && to.meta.auth) {
+      if (checkRule(to.path)) {
+        next()
+      } else {
+        next({path: '/admin'})
+      }
+    }
+  }
 })
 
 export default router

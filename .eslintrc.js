@@ -30,6 +30,7 @@ module.exports = {
     'no-unused-vars': 0,
     'func-call-spacing': 0,
     'no-undef': 0,
-    'comma-spacing': 0
+    'comma-spacing': 0,
+    'eqeqeq': 0
   }
 }

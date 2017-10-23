@@ -26,7 +26,8 @@ module.exports = {
       'cps': resolve('src/components'),
       'base': resolve('src/base'),
       'api': resolve('src/api'),
-      'common': resolve('src/common')
+      'common': resolve('src/common'),
+      'config': resolve('src/config')
     }
   },
   module: {

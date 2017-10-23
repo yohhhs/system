@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import App from './App';
 import router from './router';
+import axios from './config/http.js'
 import iView from 'iview';
 import 'iview/dist/styles/iview.css';
 import 'babel-polyfill';
@@ -12,114 +13,9 @@ Vue.config.productionTip = false
 
 Vue.use(iView)
 Vue.use(VueParticles)
-Vue.prototype.userInfo = {
-  authList: [{
-    codeValue: '视频管理',
-    lookAuth: true,
-    children: [{
-      codeValue: '视频管理',
-      lookAuth: true,
-      route: '/main/videomanager',
-      handles: [{
-        name: '添加',
-        turn: true
-      }, {
-        name: '编辑',
-        turn: true
-      }, {
-        name: '删除',
-        turn: true
-      }, {
-        name: '查看',
-        turn: true
-      }, {
-        name: '下载',
-        turn: true
-      }]
-    }]
-  }, {
-    codeValue: '我的信息',
-    lookAuth: true,
-    children: [{
-      codeValue: '个人信息',
-      lookAuth: true,
-      route: '/main/myinfo'
-    }]
-  }, {
-    codeValue: '通知公告',
-    lookAuth: true,
-    children: [{
-      codeValue: '通知公告',
-      lookAuth: true,
-      route: '/main/notice',
-      handles: [{
-        name: '添加',
-        turn: true
-      }, {
-        name: '编辑',
-        turn: true
-      }, {
-        name: '删除',
-        turn: true
-      }, {
-        name: '启用/禁用',
-        turn: true
-      }]
-    }]
-  }, {
-    codeValue: '基础设置',
-    lookAuth: true,
-    children: [{
-      codeValue: '学校设置',
-      lookAuth: true,
-      route: '/main/schoolsetting',
-      handles: [{
-        name: '添加',
-        turn: true
-      }, {
-        name: '编辑',
-        turn: true
-      }, {
-        name: '删除',
-        turn: true
-      }]
-    }]
-  }, {
-    codeValue: '系统菜单',
-    lookAuth: true,
-    children: [{
-      codeValue: '角色管理',
-      lookAuth: true,
-      route: '/main/authmanager',
-      handles: [{
-        name: '添加',
-        turn: true
-      }, {
-        name: '编辑',
-        turn: true
-      }, {
-        name: '删除',
-        turn: true
-      }]
-    }, {
-      codeValue: '权限管理',
-      lookAuth: true,
-      route: '/main/authallot'
-    }]
-  }, {
-    codeValue: '会员管理',
-    lookAuth: true,
-    children: [{
-      codeValue: '学校信息',
-      lookAuth: true,
-      route: '/main/schoolmember'
-    }, {
-      codeValue: '专家信息',
-      lookAuth: true,
-      route: '/main/expertmember'
-    }]
-  }]
-}
+
+Vue.prototype.$http = axios
+Vue.prototype.userInfo = {}
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

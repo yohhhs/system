@@ -2,7 +2,7 @@
     <div class="layout">
         <header class="layout-header">
             <span class="welcome">欢迎你： 18482130206</span>
-            <Button type="error">退出登录</Button>
+            <Button type="error" @click="outLogin">退出登录</Button>
         </header>
         <div class="layout-left">
             <left-menu @changeRoute='changeRoute'></left-menu>
@@ -30,7 +30,16 @@ export default {
             this.$router.push({
                 path: routePath
             })
-        }
+        },
+      outLogin() {
+          this.$http.post('/login/outLogin').then(res => {
+            if (res.data.returnCode == 200) {
+              this.$router.push('/admin')
+            }
+          }).catch(res => {
+            console.log(res)
+          })
+      }
     }
 }
 </script>

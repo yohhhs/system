@@ -1,11 +1,11 @@
 <template>
     <div class="left-menu">
         <Menu v-if="currentUserInfo.authList.length" :active-name='currentUserInfo.authList[0].children[0].route' @on-select="changeRoute" theme="dark" width="auto" :accordion="true">
-            <Submenu v-if="menu.lookAuth" v-for="(menu, index) in currentUserInfo.authList" :name="index">
+            <Submenu v-if="menu.lookAuth" v-for="(menu, index) in currentUserInfo.authList" :key="menu.code" :name="index">
                 <template slot="title">
                     {{menu.codeValue}}
                 </template>
-                <MenuItem v-if="item.lookAuth" v-for="(item, index) in menu.children" :name="item.route">
+                <MenuItem v-if="item.lookAuth" v-for="(item, index) in menu.children" :key="item.code" :name="item.route">
                     {{item.codeValue}}
                 </MenuItem>
             </Submenu>
