@@ -1,7 +1,7 @@
 <template>
     <div class="layout">
         <header class="layout-header">
-            <span class="welcome">欢迎你： 18482130206</span>
+            <span class="welcome">欢迎你： {{tel}}</span>
             <Button type="error" @click="outLogin">退出登录</Button>
         </header>
         <div class="layout-left">
@@ -18,12 +18,14 @@ import leftMenu from 'cps/left-menu/left-menu'
 export default {
     data() {
         return {
+            tel: ''
         }
     },
     components: {
         leftMenu
     },
     mounted() {
+        this.tel = window.sessionStorage.getItem('tel')
     },
     methods: {
         changeRoute(routePath) {
@@ -66,6 +68,7 @@ export default {
     }
     .layout-right {
         padding: 70px 0 0 240px;
+        background: #fff
     }
 }
 </style>

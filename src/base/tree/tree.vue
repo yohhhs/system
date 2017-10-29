@@ -9,8 +9,7 @@
                     <Checkbox @on-change="childBox(parentIndex, childIndex)"
                       v-model="child.lookAuth">{{child.codeValue}}</Checkbox>
                 </span> <span>
-                    <Checkbox v-for="handle in child.handles" :disabled="!child.lookAuth"
-                      v-model="handle.turn">{{handle.name}}</Checkbox>
+                    <Checkbox v-for="handle in child.handles" :key='handle.name' :disabled="!child.lookAuth" v-model="handle.turn">{{handle.name}}</Checkbox>
                 </span>
           </li>
         </ul>

@@ -4,11 +4,6 @@ import { checkRule } from 'common/js/util'
 
 Vue.use(Router)
 
-const Admin = ((resolve) => {
-  import ('cps/admin/admin').then((admin) => {
-    resolve(admin)
-  })
-})
 const Login = ((resolve) => {
   import ('cps/login/login').then((login) => {
     resolve(login)
@@ -17,6 +12,11 @@ const Login = ((resolve) => {
 const Register = ((resolve) => {
   import ('cps/register/register').then((register) => {
     resolve(register)
+  })
+})
+const ForgetPwd = ((resolve) => {
+  import ('cps/forgetpwd/forgetpwd').then((forgetpwd) => {
+    resolve(forgetpwd)
   })
 })
 const Layout = ((resolve) => {
@@ -64,20 +64,37 @@ const AuthAllot = ((resolve) => {
     resolve(authallot)
   })
 })
+const Dictionary = ((resolve) => {
+  import ('cps/dictionary/dictionary').then((dictionary) => {
+    resolve(dictionary)
+  })
+})
+const Account = ((resolve) => {
+  import ('cps/accountmanager/accountmanager').then((accountmanager) => {
+    resolve(accountmanager)
+  })
+})
 
 const router = new Router({
-  mode: 'history',
   routes: [{
     path: '/',
-    redirect: '/admin'
+    redirect: '/login'
   },
     {
       path: '*',
-      redirect: '/admin'
+      redirect: '/login'
     },
     {
-      path: '/admin',
-      component: Admin
+      path: '/login',
+      component: Login
+    },
+    {
+      path: '/register',
+      component: Register
+    },
+    {
+      path: '/resetpass',
+      component: ForgetPwd
     },
     {
       path: '/main',
@@ -114,24 +131,32 @@ const router = new Router({
         path: 'authallot',
         component: AuthAllot,
         meta: {auth: true}
+      }, {
+        path: 'dictionary',
+        component: Dictionary,
+        meta: {auth: true}
+      }, {
+        path: 'accountmanager',
+        component: Account,
+        meta: {auth: true}
       }]
     }
   ]
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.path === '/admin' || to.path === '/' || to.path === '*') {
+  if (to.path === '/login' || to.path === '/' || to.path === '*' || to.path === '/register' || to.path === '/resetpass') {
     next()
   } else if (to.path === '/main') {
-    next({path: '/admin'})
+    next({path: '/login'})
   } else {
     if (from.path === '/') {
-      next({path: '/admin'})
+      next({path: '/login'})
     } else if (to.meta && to.meta.auth) {
       if (checkRule(to.path)) {
         next()
       } else {
-        next({path: '/admin'})
+        next({path: '/login'})
       }
     }
   }

@@ -1,26 +1,32 @@
 <template>
   <div class="login">
-    <h1 class="name">教育部数据采集系统</h1>
-    <h2 class="title">用户登录</h2>
-    <Input class="input" v-model="tel" type="text" size="large" placeholder="请输入手机号"></Input> <Input class="input"
-    @on-enter="userLogin" v-model="pwd" type="password" size="large" placeholder="请输入密码"></Input>
-    <div class="vali">
-      <Input class="vali-input" v-model="vali" type="text" size="large" placeholder="请输入验证码"></Input> <img
-      class="vali-img" :src="picCode" @click="changeCode">
+    <div class="login-wrapper">
+      <h2 class="title">用户登录</h2>
+      <div class="input-wrappper">
+          <Input class="input" style="border: none;" v-model="tel" type="text" size="large" placeholder="请输入手机号"></Input> <Input class="input"
+          @on-enter="userLogin" v-model="pwd" type="password" size="large" placeholder="请输入密码"></Input>
+          <div class="vali">
+            <Input class="vali-input" v-model="vali" type="text" size="large" placeholder="请输入验证码"></Input> <img
+            class="vali-img" :src="picCode" @click="changeCode">
+          </div>
+          <Button style="height:36px" type="primary" :loading="loginLoading" :long="true" @click="userLogin">
+            <span v-if="!loginLoading">登录</span> <span v-else>Loading...</span>
+          </Button>
+          <div class="footer">
+            <span @click='loginToForget'>忘记密码</span> 
+            <span class="right" @click='loginToRegister'>立即注册</span>
+          </div>
+      </div>
     </div>
-    <Button style="height:36px" type="primary" :loading="loginLoading" :long="true" @click="userLogin">
-      <span v-if="!loginLoading">登录</span> <span v-else>Loading...</span>
-    </Button>
-    <div class="footer">
-      <span @mouseover="isLeft" @click='loginToForget'>忘记密码</span> <span class="right" @mouseover="isRight"
-      @click='loginToRegister'>立即注册</span>
-    </div>
+    <admin></admin>
   </div>
 </template>
 <script>
   import md5 from 'js-md5'
   import Vue from 'vue'
   import rule from 'config/rule'
+  import {contactRule} from 'common/js/util'
+  import Admin from 'cps/admin/admin'
 
   export default {
     data () {
@@ -34,7 +40,9 @@
         picCode: ''
       }
     },
-    components: {},
+    components: {
+      Admin
+    },
     created () {
       this.getPicCode()
     },
@@ -75,36 +83,25 @@
           code: code
         }).then(res => {
           let returnData = res.data
-          this.loginLoading = true
+          this.loginLoading = false
           if (returnData.returnCode == 200) {
             if (returnData.data.memberType === '639052bf032545f381231c38b6ecf39c' && !returnData.data.permissions) {
               Vue.prototype.userInfo = {
                 authList: rule.initRule
               }
             } else {
-              let permissions = JSON.parse(returnData.data.permissions)
-              let dictionary = returnData.data.dictionary
-              permissions.forEach(item => {
-                dictionary.forEach(dic => {
-                  if (item.code === dic.code) {
-                    return (item.codeValue = dic.codeValue)
-                  }
-                })
-                if (item.children) {
-                  item.children.forEach(child => {
-                    dictionary.forEach(dic => {
-                      if (child.code === dic.code) {
-                        return (child.codeValue = dic.codeValue)
-                      }
-                    })
-                  })
-                }
-              })
+              let permissions = contactRule(JSON.parse(returnData.data.permissions), returnData.data.dictionary)
               Vue.prototype.userInfo = {
                 authList: permissions
               }
             }
-            this.$emit('login')
+            window.sessionStorage.setItem('tel', tel)
+            let path = this.userInfo.authList[0].children[0].route
+            this.$router.push({
+                path: path
+            })
+          } else {
+            this.error(returnData.message)
           }
         }).catch(res => {
           this.loginLoading = false
@@ -117,49 +114,47 @@
         })
       },
       loginToRegister () {
-        this.$emit('loginToRegister')
+        this.$router.push({
+          path: '/register'
+        })
       },
       loginToForget () {
-        this.$emit('loginToForget')
-      },
-      isLeft () {
-        this.$emit('isLeft')
-      },
-      isRight () {
-        this.$emit('isRight')
+        this.$router.push({
+          path: '/resetpass'
+        })
       }
     }
   }
 </script>
 <style lang="stylus" scoped>
   .login {
-    position: relative;
-    padding: 20px;
-    width: 350px;
-    border-radius: 3px;
-    box-shadow: 0 0 3px 2px rgba(0, 0, 0, 0.1);
-    background-color: rgba(255, 255, 255, 1);
-
-    .name {
-      position: absolute;
-      top: -100px;
-      left: 0;
-      width: 100%;
-      font-size: 32px;
-      text-align: center;
-      color: #ffffff;
+    .login-wrapper {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -60%);
+      width: 400px;
+      border-radius: 10px;
+      background-color: rgba(54, 77, 236, .4);
+      z-index: 99
     }
-
     .title {
-      margin-bottom: 30px;
+      margin-bottom: 30px
+      line-height: 55px;
       text-align: center;
-      color: #000000;
+      color: #fff;
+      font-weight 100
+      border-bottom: 3px solid #fff
     }
-
+    .input-wrappper {
+      padding: 0 30px 20px
+    }
     .input, .vali {
       margin-bottom: 18px;
     }
-
+    .ivu-input, .ivu-select-selection {
+      border: none
+    }
     .vali {
       display: flex;
       justify-content: space-between;
@@ -177,7 +172,7 @@
 
     .footer {
       margin-top: 25px;
-
+      color: #fff
       span {
         cursor: pointer;
       }

@@ -11,15 +11,18 @@
   </div>
 </template>
 <script>
-  import { ruleTree } from 'common/js/util'
+  import { ruleTree, contactRule } from 'common/js/util'
   import Tree from 'base/tree/tree'
 
   export default {
     data () {
       return {
         queryLoading: false,
-        authList: ruleTree()
+        authList: null
       }
+    },
+    created() {
+      this.getInitRole()
     },
     mounted () {
     },
@@ -27,14 +30,30 @@
       Tree
     },
     methods: {
+      getInitRole() {
+        this.$http.post('/permission/getInitializePermissionsTree').then(res => {
+          let returnData = res.data
+          if (returnData.returnCode == 200) {
+            // let permissions = contactRule(JSON.parse(returnData.data.permissions), returnData.data.dictionary, false)
+            if (returnData.data.permissions) {
+              this.authList = contactRule(JSON.parse(returnData.data.permissions), returnData.data.dictionary)
+            } else {
+              this.authList = ruleTree()
+            }
+          }
+        }).catch(res => {
+          console.log(res)
+        })
+      },
       changeRule () {
         let authList = this.getAuthList()
         this.queryLoading = true
         this.$http.post('/permission/updatePermission', {
-          permissionTrees: JSON.stringify(this.authList)
+          managerPermission: ruleTree(true),
+          permissionTrees: JSON.stringify(authList)
         }).then(res => {
           if (res.data.returnCode == 200) {
-            this.userInfo.authList = JSON.parse(JSON.stringify(this.authList))
+            this.userInfo.authList = JSON.parse(JSON.stringify(authList))
             this.$Message.success('修改权限成功')
           }
           this.queryLoading = false
@@ -51,7 +70,7 @@
 <style lang="stylus" scoped>
   .auth-allot {
     position: relative
-    padding: 20px
+    padding: 0 20px
     .wrapper {
       position: absolute
       top: 80px

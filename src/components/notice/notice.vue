@@ -3,74 +3,84 @@
     <div class="query-wrapper">
       <Row class="item" :gutter="16">
         <Col span="6">
-        <span class="name">活动名称</span> <Input v-model="activeName" placeholder="请输入活动名称"
-        style="width: 60%"></Input></Col>
+        <span class="name">活动名称</span> 
+        <Select placeholder="请选择活动名称"  @on-change="changeActive" :clearable='clearable' :filterable='filterable' style="width: 60%">
+          <Option v-if="activeList" v-for="item in activeList" :value="item.id" :key="item.id">{{ item.codeValue }}</Option>
+        </Select>
+        </Col>
         <Col span="6">
-        <span class="name">公告内容</span> <Input v-model="activeBody" placeholder="公告内容" style="width: 60%"></Input></Col>
-        <Col span="6">
-        <Button type="primary" :loading="queryLoading">
+        <Button type="primary" :loading="queryLoading" @click='queryNotice'>
           <span v-if="!queryLoading">查询</span><span v-else>Loading...</span>
         </Button>
         </Col>
       </Row>
     </div>
     <div class="btns-wrapper">
-      <Button type="primary" v-for="(item, index) in handles" v-if="item.turn" style="margin-right:15px;" @click="btn(item.name)">{{item.name}}</Button>
+      <Button type="primary" v-for="(item, index) in handles" :key='index' v-if="item.turn" style="margin-right:15px;" @click="btn(item.name)">{{item.name}}</Button>
     </div>
-    <Table @on-selection-change="select" border :columns="columns" :data="listData"></Table>
+    <Table @on-row-click='tableClick' :highlight-row='highlight' border :columns="columns" :data="listData"></Table>
     <div class="page-wrapper">
-      <Page @on-change='changePage' :total="100" show-elevator></Page>
+      <Page @on-change='changePage' :total="total" show-elevator></Page>
     </div>
-    <Modal v-model="addConfirm" width="360">
+    <Modal @on-cancel='addConfirmClose' v-model="addConfirm" width="360">
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="information-circled"></Icon>
         <span>添加通知公告</span>
       </p>
       <div style="text-align:center">
-        <Input v-model="addActiveName" placeholder="请输入活动名称" style="margin-bottom: 20px"></Input> <Input
-        v-model="addActiveBody" placeholder="请输入公告内容" style="margin-bottom: 20px"></Input> <Select placeholder="启用"
-        placement="top" @on-change="addChange" :value="1">
-        <Option v-for="item in turns" :value="item.value" :key="item.value">{{ item.label }}</Option>
-      </Select>
+        <Select ref='addSelect1' placeholder="请选择活动名称" :clearable='clearable' :filterable='filterable'  @on-change="addChangeActive" style="margin-bottom: 20px">
+          <Option v-for="item in activeList" :value="item.id" :key="item.id">{{ item.codeValue }}</Option>
+        </Select>
+        <Input
+        v-model="addActiveBody" placeholder="请输入公告内容" style="margin-bottom: 20px"></Input>
+        <Select ref='addSelect2' placeholder="请选择状态"
+        placement="top" @on-change="addChange">
+          <Option v-for="item in turns" :value="item.value" :key="item.value">{{ item.label }}</Option>
+        </Select>
       </div>
       <div slot="footer">
-        <Button type="primary" size="large" long :loading="addQuery" @click="addNotice">确定</Button>
+        <Button type="primary" size="large" long :loading="addLoading" @click="addNotice">确定</Button>
       </div>
     </Modal>
-    <Modal v-model="writeConfirm" width="360">
+    <Modal v-model="writeConfirm" width="360" @on-cancel='writeConfirmClose'>
       <p slot="header" style="color:#f60;text-align:center">
         <Icon type="information-circled"></Icon>
         <span>编辑通知公告</span>
       </p>
       <div style="text-align:center">
-        <Input v-model="writeActiveName" placeholder="请输入活动名称" style="margin-bottom: 20px"></Input> <Input
+        <Select ref='writeSelect1' placeholder="请选择活动名称" :clearable='clearable' :filterable='filterable'  @on-change="writeChangeActive" style="margin-bottom: 20px">
+          <Option v-for="item in activeList" :value="item.id" :key="item.id">{{ item.codeValue }}</Option>
+        </Select>
+         <Input
         v-model="writeActiveBody" placeholder="请输入公告内容" style="margin-bottom: 20px"></Input>
       </div>
       <div slot="footer">
-        <Button type="primary" size="large" long :loading="wirteQuery" @click="writeNotice">确定</Button>
+        <Button type="primary" size="large" long :loading="writeLoading" @click="writeNotice">确定</Button>
       </div>
     </Modal>
   </div>
 </template>
 <script>
+  import {common} from 'common/js/mixin'
+  import {getTime} from 'common/js/util'
   export default {
     data () {
       return {
-        addConfirm: false,
-        writeConfirm: false,
-        queryLoading: false,
-        addQuery: false,
-        wirteQuery: false,
-        selectNum: 0,
-        selectArray: [],
-        activeName: '',
-        activeBody: '',
-        addActiveName: '',
+        highlight: true,
+        filterable: true,
+        clearable: true,
+        total: 0,
+        curPageNo: 1,
+        actionName: '',
+        noticeContent: '',
+        addActiveId: '',
         addActiveBody: '',
-        writeActiveName: '',
+        writeActiveId: '',
         writeActiveBody: '',
-        addSelectValue: 1,
-        handles: [],
+        addSelectValue: '',
+        activeList: null,
+        selectItem: null,
+        selectIndex: '',
         turns: [{
           label: '启用',
           value: 1
@@ -80,13 +90,8 @@
         }],
         columns: [
           {
-            type: 'selection',
-            width: 60,
-            align: 'center'
-          },
-          {
             title: '活动名称',
-            key: 'actionName'
+            key: 'dictionActionName'
           },
           {
             title: '公告内容',
@@ -94,13 +99,13 @@
           },
           {
             title: '创建人',
-            key: 'bMemberId'
+            key: 'memberName'
           },
           {
             title: '创建日期',
             key: 'createDate',
             render: (h, params) => {
-              return h('div', this.getTime(`${params.row.createDate}`));
+              return h('div', getTime(`${params.row.createDate}`));
             }
           },
           {
@@ -114,75 +119,99 @@
         listData: []
       }
     },
+    mixins: [common],
     created () {
       this.getList()
-      this.userInfo.authList.forEach(item => {
-        item.children.forEach(child => {
-          if (child.route === this.$route.fullPath) {
-            console.log(child.handles)
-            this.handles = child.handles
-          }
-        })
-      })
+      this.getActiveList()
     },
     methods: {
+      tableClick(row, index) {
+        this.selectItem = row
+        this.selectIndex = index
+      },
+      queryNotice() {
+        this.curPageNo = 1
+        this.getList()
+      },
+      getActiveList() {
+        this.$http.post('dictionary/getDictionaryList',{
+          dictionaryTypeId: 'e7e73821b89311e7aa39309c232d4bfb'
+        }).then(res => {
+          this.activeList = res.data.data
+        })
+      },
       getList() {
-        this.$http.post('/notice/getNoticeList').then(res => {
+        this.$http.post('/notice/noticeMemberQuery',{
+          curPageNo: this.curPageNo,
+          actionName: this.actionName,
+          noticeContent: this.noticeContent
+        }).then(res => {
           if (res.data.returnCode == 200) {
-            this.listData = res.data.data
+            this.listData = res.data.data.list
+            this.total = res.data.data.total
           }
         }).catch(res => {
           console.log(res)
-        })
-      },
-      error (title) {
-        this.$Notice.error({
-          title: title,
-          duration: 2
-        })
-      },
-      warn (title, desc) {
-        this.$Notice.warning({
-          title: title,
-          duration: 3,
-          desc: desc
         })
       },
       add () {
         this.addConfirm = true
       },
       write () {
-        if (this.selectNum !== 1) {
-          return this.warn('编辑警告', '请在列表中选择一条公告，且不能多选')
+        if (!this.selectItem) {
+          return this.warn('编辑警告', '请在列表中选择一条公告')
         }
         this.writeConfirm = true
-        this.writeActiveName = this.selectArray[0].actionName
-        this.writeActiveBody = this.selectArray[0].noticeContent
+        this.writeActiveBody = this.selectItem.noticeContent
+      },
+      writeChangeActive(id) {
+        this.writeActiveId = id
       },
       del () {
-        if (this.selectNum === 0) {
-          return this.warn('删除警告', '请在列表中至少选择一条公告，可以多选')
+        if (!this.selectItem) {
+          return this.warn('删除警告', '请在列表中选择一条公告')
         }
-        this.$http.post('/notice/noticeDelete').then(res => {
+        this.$http.post('/notice/noticeDelete',{
+          id: this.selectItem.id
+        }).then(res => {
           if (res.data.returnCode == 200) {
+            this.$Message.success('删除成功')
+            this.curPageNo = 1
+            this.getList()
+            this.selectItem = null
+            this.selectIndex = ''
           }
         })
       },
       turnOn () {
-        if (this.selectNum === 0) {
-          return this.warn('启用警告', '请在列表中至少选择一条公告，可以多选')
+        if (!this.selectItem) {
+          return this.warn('启用警告', '请在列表中选择一条公告')
         }
-        this.$http.post('/notice/noticeAdd').then(res => {
-          if (res.data.returnCode == 200) {
-          }
+        this.$http.post('/notice/noticeSetStatus',{
+          id: this.selectItem.id,
+          Status: 1
+        }).then(res => {
+            if (res.data.returnCode == 200) {
+              this.$Message.success('启用成功')
+              this.listData[this.selectIndex].status = 1
+              this.selectItem = null
+              this.selectIndex = ''
+            }
         })
       },
       turnOff () {
-        if (this.selectNum === 0) {
-          return this.warn('禁用警告', '请在列表中至少选择一条公告，可以多选')
+        if (!this.selectItem) {
+          return this.warn('禁用警告', '请在列表中选择一条公告')
         }
-        this.$http.post('/notice/noticeAdd').then(res => {
+        this.$http.post('/notice/noticeSetStatus',{
+          id: this.selectItem.id,
+          Status: 0
+        }).then(res => {
           if (res.data.returnCode == 200) {
+            this.$Message.success('禁用成功')
+            this.listData[this.selectIndex].status = 0
+            this.selectItem = null
+            this.selectIndex = ''
           }
         })
       },
@@ -206,55 +235,77 @@
         }
       },
       addNotice() {
-        let addActiveName = this.addActiveName.trim()
+        let addActiveId = this.addActiveId
+        let status = this.addSelectValue
         let addActiveBody = this.addActiveBody.trim()
-        if (addActiveName && addActiveBody) {
-          this.$http.post('/notice/noticeAdd').then(res => {
+        if (addActiveId && addActiveBody) {
+          this.addLoading = true
+          this.$http.post('/notice/noticeAdd',{
+            actionName: addActiveId,
+            noticeContent: this.addActiveBody,
+            status: status
+          }).then(res => {
+            this.addLoading = false
             if (res.data.returnCode == 200) {
+              this.addConfirm = false
+              this.curPageNo = 1
+              this.getList()
+              this.addConfirmClose()
+              this.$Message.success('添加成功')
             }
           })
         } else {
-          this.error('名称或内容不能为空')
+          this.error('活动或者内容不能为空')
         }
       },
       writeNotice() {
-        let writeActiveName = this.writeActiveName.trim()
+        let writeActiveId = this.writeActiveId
         let writeActiveBody = this.writeActiveBody.trim()
-        if (writeActiveBody && writeActiveBody) {
-          this.$http.post('/notice/noticeUpdate').then(res => {
+        if (writeActiveId && writeActiveBody) {
+          this.writeLoading = true
+          this.$http.post('/notice/noticeUpdate',{
+              actionName: writeActiveId,
+              noticeContent: writeActiveBody,
+              id: this.selectItem.id
+          }).then(res => {
             if (res.data.returnCode == 200) {
+              console.log(this.selectIndex)
+              this.writeLoading = false
+              this.writeConfirmClose()
+              this.writeConfirm = false
+              this.listData[this.selectIndex].noticeContent = writeActiveBody
+              this.$Message.success('修改成功')
+              this.selectItem = null
+              this.selectIndex = ''
             }
           })
         } else {
-          this.error('名称或内容不能为空')
+          this.error('活动或内容不能为空')
         }
+      },
+      addConfirmClose() {
+        this.addLoading = false
+        this.addActiveBody = ''
+        this.$refs.addSelect1.clearSingleSelect()
+        this.$refs.addSelect2.clearSingleSelect()
+      },
+      writeConfirmClose() {
+        this.writeLoading = false
+        this.writeActiveBody = ''
+        this.$refs.writeSelect1.clearSingleSelect()
       },
       addChange(val) {
         this.addSelectValue = val
       },
-      select (selection) {
-        this.selectNum = selection.length
-        this.selectArray = selection
-        console.log(selection)
-      },
       changePage (num) {
-        console.log(num)
+        this.curPageNo = num
+        this.getList()
       },
-      getTime (UnixTime) {
-        var a = UnixTime.replace('/Date(', '').replace(')/', '')
-        var date = new Date(parseInt(a))
-        var y = date.getFullYear()
-        var m = date.getMonth() + 1
-        m = m < 10 ? ('0' + m) : m
-        var d = date.getDate()
-        d = d < 10 ? ('0' + d) : d
-        var h = date.getHours()
-        h = h < 10 ? ('0' + h) : h
-        var minute = date.getMinutes()
-        var second = date.getSeconds()
-        minute = minute < 10 ? ('0' + minute) : minute
-        second = second < 10 ? ('0' + second) : second
-        return y + '-' + m + '-' + d + ' ' + h + ':' + minute + ':' + second
+      changeActive(id) {
+        this.actionName = id
+      },
+      addChangeActive(id) {
+        this.addActiveId = id
       }
     }
   }
